@@ -16,7 +16,7 @@ Python libraries xmltodict and requests
 ##Install
 1. Download dumblr.py
 2. Copy dumblr.py to /usr/bin (or any other bin directory you've defined)
-3. chmod +x <path to dumblr.py>
+3. `chmod +x <path to dumblr.py>`
 
 ##Usage
 
