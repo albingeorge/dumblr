@@ -1,7 +1,7 @@
 Tumblr Downloader
 =================
 
-Downloads all the images from a tumblr blog.
+Downloads all the images or videos from a tumblr blog.
 
 ##Dependencies
 
@@ -10,7 +10,7 @@ Python libraries xmltodict and requests
 ### Install Dependencies
 
 1. Install [pip](https://pypi.python.org/pypi/pip)
-2. pip install xmltodict requests
+2. `pip install xmltodict requests`
 
 
 ##Install
@@ -21,11 +21,13 @@ Python libraries xmltodict and requests
 ##Usage
 
 ```console
-dumblr.py [site name]
+dumblr.py [site name] [media type]
 ```
+
+Media type can be "photo" or "video" and defaults to "photo".
 
 Example:
 
 ```
-dumblr.py makingmoments
+dumblr.py makingmoments video
 ```
