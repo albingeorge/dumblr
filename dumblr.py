@@ -64,7 +64,7 @@ def download(site, media_type):
     total_pages = 0
     posts_retrieved = 0
     start = 0
-
+    init = True
     page = 0
 
     while True:
@@ -73,10 +73,13 @@ def download(site, media_type):
         print url
         start = start + 50
         data = get_data(url)
-        if total == 0:
+        if init:
+            init = False
             total = int(data["tumblr"]["posts"]["@total"])
             total_pages = int(total/50) + 1
             print "Total pages: " + str(total_pages)
+        if total == 0:
+            break
         if page > total_pages:
             break
 
