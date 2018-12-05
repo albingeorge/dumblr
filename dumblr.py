@@ -1,93 +1,70 @@
 #!/usr/bin/env python
 
-# Usage: dumblr.py <site name> <type>
-# Example: dumblr.py makingmoments photo
+# Usage: dumblr.py <site name>
+# Example: dumblr.py makingmoments
 
-import urllib2
-import xmltodict
+
+import urllib
 import sys
-import requests
 import os
-import re
+import pprint
+import pytumblr
+from bs4 import BeautifulSoup
 
 
-def get_url(site, media_type, start = 0):
-    url = "http://" + site + ".tumblr.com/api/read?type=" + media_type + "&num=50&start=" + str(start)
-    # print site  + str(start)
-    return url
-
-def get_data(url):
-    file = urllib2.urlopen(url)
-    data = file.read()
-    file.close()
-
-    data = xmltodict.parse(data)
-    return data
+client = pytumblr.TumblrRestClient(
+  '5dwIMgOCuf8D4OjK92hThcFbnG7Jnn78jOt4Z90AKtVTKOU3Ij',
+  'BBgTeFW1Z9PLVBSTvnamLt59QZ1znHjUh414kHSBZlAgiBKw5a',
+  'QRpK3JKLWIiKuXaSdQ9Xz3HU6G6tc2oilUbTeztXyc90eLfA6V',
+  'IHwQgbH3nQhBBggvJITKlz3eMG5zMahuf4kkKbQVNa5RQwc5eJ'
+)
 
 def get_urls(data, media_type):
-    urls = []
-    if isinstance(data["tumblr"]["posts"]["post"], list):
-        posts = data["tumblr"]["posts"]["post"]
-    else:
-        posts = [data["tumblr"]["posts"]["post"]]
-    for post in posts:
+    urls = {}
+    for post in data:
+        post_id = post["id"]
         if media_type == "photo":
-            urls.append(post["photo-url"][0]["#text"])
-        elif media_type == "video":
-            video_data = post["video-player"][0]
-            if video_data:
-                match = re.search(r'src\=\"(.*?)\"', video_data)
-                if match:
-                    url = match.groups()[0]
-                    urls.append(url + ".mp4")
+            if post["type"] == "text":
+                urls[post_id] = []
+                body = post["body"]
 
+                soup = BeautifulSoup(body, 'html.parser')
+                for link in soup.find_all('img'):
+                    urls[post_id].append(link.get('src'))
+            elif post["type"] == "photo":
+                urls[post_id] = []
+                for photo in post["photos"]:
+                    urls[post_id].append(photo["original_size"]["url"])
+            else:
+                pprint.pprint(post)
+                os.exit()
     return urls
 
 def save_files(site, urls):
-    HEADERS = {'user-agent': 'Mozilla/4.0 (compatible; MSIE 5.5; Windows NT)'}
-    session = requests.session()
-    for url in urls:
-        ignored, filename = url.rsplit('/', 1)
-
-        # print os.path.join(site, filename)
-        filename = os.path.join(site, filename)
-        if os.path.exists(filename):
-            continue
-        with file(filename, 'wb') as outfile:
-            response = session.get(url, headers=HEADERS)
-            if not response.ok:
-                break
-            outfile.write(response.content)
+    for id in urls.keys():
+        for index, url in enumerate(urls[id]):
+            filename = str(id) + "_" + str(index + 1)
+            filepath = os.path.join(site, filename) + ".jpg"
+            if os.path.exists(filepath):
+                continue
+            urllib.urlretrieve(url, filepath)
 
 def download(site, media_type):
-    total = 0
-    total_pages = 0
-    posts_retrieved = 0
     start = 0
-    init = True
     page = 0
-
+    total_posts = 0
     while True:
         page = page + 1
-        url = get_url(site, media_type, start)
-        print url
+        data = client.posts(site, media_type, offset=start, limit=50, filter="raw")
+        total_posts = data["total_posts"]
         start = start + 50
-        data = get_data(url)
-        if init:
-            init = False
-            total = int(data["tumblr"]["posts"]["@total"])
-            total_pages = int(total/50) + 1
-            print "Total pages: " + str(total_pages)
-        if total == 0:
-            break
-        if page > total_pages:
-            break
-
         print "Downloading " + media_type + "s from page: " + str(page)
-        urls = get_urls(data, media_type)
-
+        urls = get_urls(data["posts"], media_type)
         save_files(site, urls)
-        posts_retrieved = posts_retrieved + len(urls)
+
+        if start > total_posts:
+            break
+
     print "Completed download of all " + media_type + "s for " + site
 
 if len(sys.argv) < 2:
