@@ -9,6 +9,7 @@ import sys
 import os
 import pprint
 import pytumblr
+import urlparse
 from bs4 import BeautifulSoup
 
 
@@ -44,7 +45,12 @@ def save_files(site, urls):
     for id in urls.keys():
         for index, url in enumerate(urls[id]):
             filename = str(id) + "_" + str(index + 1)
-            filepath = os.path.join(site, filename) + ".jpg"
+
+            # Get extension
+            path = urlparse.urlparse(url).path
+            ext = os.path.splitext(path)[1]
+
+            filepath = os.path.join(site, filename) + ext
             if os.path.exists(filepath):
                 continue
             urllib.urlretrieve(url, filepath)
