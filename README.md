@@ -3,7 +3,7 @@ Tumblr Downloader
 
 Downloads all the images or videos from a tumblr blog.
 
-##Dependencies
+## Dependencies
 
 Python libraries xmltodict and requests
 
@@ -13,12 +13,12 @@ Python libraries xmltodict and requests
 2. `pip install xmltodict requests`
 
 
-##Install
+## Install
 1. Download dumblr.py
 2. Copy dumblr.py to /usr/bin (or any other bin directory you've defined)
 3. `chmod +x <path to dumblr.py>`
 
-##Usage
+## Usage
 
 ```console
 dumblr.py [site name] [media type]
